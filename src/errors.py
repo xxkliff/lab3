@@ -1,13 +1,17 @@
-
 class CatalogError(Exception):
     """
     Базовая ошибка пакета
 
     Хранит код ошибки и сообщение
     """
-    def __init__(self, error_code, message):
-        self.error_code = error_code
+    def __init__(self, error_code: str, message: str) -> None:
+        """
+        :param error_code: код ошибки для тестов и обработки
+        :param message: сообщение для пользователя
+        """
         super().__init__(message)
+        self.error_code = error_code
+        self.message = message
 
 
 class InvalidEssence(CatalogError):
@@ -24,6 +28,7 @@ class ObjectNotFound(CatalogError):
 
 class UnsupportedFormatVersion(CatalogError):
     """Неподдерживаемая версия формата"""
+
 
 class DamagedFile(CatalogError):
     """Повреждённый файл"""
