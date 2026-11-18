@@ -1,7 +1,9 @@
 from collections.abc import Iterator
+from pathlib import Path
 
 from src.errors import DuplicateID, InvalidEssence, ObjectNotFound
 from src.models import MediaItem
+from src.storage import load_items, save_items
 
 
 class MediaCatalog:
@@ -54,14 +56,14 @@ class MediaCatalog:
 
         return self._items.pop(item_id)
 
-    def find_by_name(self, name: str) -> list[MediaItem]:
+    def find_by_name(self, query: str) -> list[MediaItem]:
         """
-        Ищет объекты, в названии которых есть подстрока name
+        Ищет объекты, в названии которых есть подстрока query
 
-        :param name: подстрока для поиска
+        :param query: подстрока для поиска
         :return: новый список найденных объектов в порядке добавления
         """
-        query = name.casefold()
+        query = query.casefold()
         return [item for item in self._items.values() if query in item.title.casefold()]
 
     def find_by_category(self, category: str) -> list[MediaItem]:
@@ -72,6 +74,26 @@ class MediaCatalog:
         :return: новый список найденных объектов в порядке добавления
         """
         return [item for item in self._items.values() if item.category == category]
+
+    def save(self, path: Path) -> None:
+        """
+        Сохраняет каталог в JSON файл
+
+        :param path: путь к файлу
+        :raises OSError: нет директории или прав на запись
+        """
+        save_items(path, self._items.values())
+
+    def load(self, path: Path) -> None:
+        """
+        загружает каталог из JSON файла вместо текущего содержимого
+
+        :param path: путь к файлу
+        :raises DamagedFile: файл повреждён или содержит невалидную запись
+        :raises UnsupportedFormatVersion: версия не поддерживается
+        :raises OSError: файл не найден или нет прав на чтение
+        """
+        self._items = load_items(path)
 
     def __len__(self) -> int:
         """
