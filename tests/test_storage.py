@@ -71,3 +71,33 @@ def test_load_not_found(tmp_path: Path) -> None:
         catalog.load(tmp_path / "no_exist.json")
 
     assert len(catalog) == 2
+
+
+@pytest.mark.parametrize("content", [b"", b"{", b'{"format_version": 1, "items": [}', b"\xff\xfe\x00"])
+def test_load_not_json(tmp_path: Path, content: bytes) -> None:
+    path = tmp_path / "catalog.json"
+    path.write_bytes(content)
+    catalog = _catalog()
+
+    with pytest.raises(DamagedFile) as exc_info:
+        catalog.load(path)
+
+    assert exc_info.value.error_code == "json_decode_error"
+    assert [item.id for item in catalog] == ["old-1", "old-2"]
+
+
+def test_load_partially_damaged(tmp_path: Path) -> None:
+    path = tmp_path / "catalog.json"
+    broken = _record("m-4")
+    del broken["title"]
+    _write(path, {"format_version": 1, "items": [_record("m-1"), _record("m-2"), _record("m-3"), broken]})
+    catalog = _catalog()
+    before = list(catalog)
+
+    with pytest.raises(DamagedFile) as exc_info:
+        catalog.load(path)
+
+    assert exc_info.value.error_code == "missing_key"
+    assert "Запись 4" in str(exc_info.value)
+    assert list(catalog) == before
+    assert "m-1" not in catalog
