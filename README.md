@@ -14,28 +14,20 @@
 
 Нужен Python 3.12 или новее и [uv](https://github.com/astral-sh/uv)
 
-**Windows (PowerShell)**
-```powershell
-uv sync
-.venv\Scripts\Activate.ps1
-pre-commit install
-```
-
-**Linux / macOS**
 ```bash
 uv sync
-source .venv/bin/activate
-pre-commit install
 ```
 
 ## Тесты и проверки
 
 ```bash
-python -m pytest
-pre-commit run --all-files
+uv run pytest
+uv run pytest --cov=src
+uv run ruff check .
+uv run mypy src tests
 ```
 
-71 тест, mypy и ruff запускаются через pre-commit
+65 тестов, покрытие `src` 95%
 
 ## Использование
 
