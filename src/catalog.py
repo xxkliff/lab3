@@ -12,6 +12,7 @@ class MediaCatalog:
     """
 
     def __init__(self) -> None:
+        """Создаёт пустой каталог"""
         self._items: dict[str, MediaItem] = {}
 
     def add(self, item: MediaItem) -> None:

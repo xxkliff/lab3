@@ -71,3 +71,19 @@ def test_load_not_found(tmp_path: Path) -> None:
         catalog.load(tmp_path / "no_exist.json")
 
     assert len(catalog) == 2
+
+
+def test_load_partially_damaged(tmp_path: Path) -> None:
+    path = tmp_path / "catalog.json"
+    broken = {"id": "m-4"}
+    _write(path, {"format_version": 1, "items": [_record("m-1"), _record("m-2"), _record("m-3"), broken]})
+    catalog = _catalog()
+    before = list(catalog)
+
+    with pytest.raises(DamagedFile) as exc_info:
+        catalog.load(path)
+
+    assert exc_info.value.error_code == "missing_key"
+    assert "Запись 4" in str(exc_info.value)
+    assert list(catalog) == before
+    assert "m-1" not in catalog
